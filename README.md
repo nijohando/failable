@@ -1,9 +1,7 @@
 # Failable
 
 [![Clojars Project](https://img.shields.io/clojars/v/jp.nijohando/failable.svg)](https://clojars.org/jp.nijohando/failable)
-
-[![CircleCI](https://circleci.com/gh/nijohando/failable.svg?style=shield&circle-token=7f8a9c5dffdd84b9b187eb1cc4e256b228878bc9)](https://circleci.com/gh/nijohando/failable)
-
+[![CircleCI](https://circleci.com/gh/nijohando/failable.svg?style=shield)](https://circleci.com/gh/nijohando/failable)
 
 Failable is clojure / clojurescript library that provides error handling helpers without try / catch syntax.
 
