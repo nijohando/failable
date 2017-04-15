@@ -1,4 +1,4 @@
-(defproject jp.nijohando/failable "0.1.0"
+(defproject jp.nijohando/failable "0.1.1"
   :description "Try catch block free error handling utilities"
   :url "https://github.com/nijohando/failable"
   :license {:name "Eclipse Public License"

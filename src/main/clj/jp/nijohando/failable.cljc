@@ -77,9 +77,10 @@
   [bindings & body]
   (->> (reverse (partition 2 bindings))
        (reduce (fn [acc [l r]]
-                 `(let [~l (ftry ~r)]
-                    (if (failure? ~l)
-                      ~l
+                 `(let [x# (ftry ~r)
+                        ~l x#]
+                    (if (failure? x#)
+                      x#
                       ~acc)))
                `(ftry ~@body))))
 

@@ -95,6 +95,23 @@
       (is (= [:step1 :step2] @mark))
       (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"^error1$" (throw @r))))))
 
+(deftest flet-destructing-test
+  (testing "Binding form is returned"
+    (is (= 1 (f/flet [{:keys [a]} {:a 1}] a))))
+  (testing "Binding evaluation is stopped by failure"
+    (let [mark (atom [])
+          r (f/flet [{:keys [a]} (do (swap! mark conj :step1)
+                           {:a 1})
+                     {:keys [b]} (do (swap! mark conj :step2)
+                                     (f/fail "error1"))
+                     {:keys [c]} (do (swap! mark conj :step3)
+                                     {:c 3})]
+              (+ a b))]
+      (is (f/failure? r))
+      (is (= [:step1 :step2] @mark))
+      (is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"^error1$" (throw @r))))))
+
+
 (deftest f->return-value-test
   (testing "Body forms are evaludated and returned"
     (is (= 2 (f/f-> 1
