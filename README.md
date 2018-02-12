@@ -3,151 +3,251 @@
 [![Clojars Project](https://img.shields.io/clojars/v/jp.nijohando/failable.svg)](https://clojars.org/jp.nijohando/failable)
 [![CircleCI](https://circleci.com/gh/nijohando/failable.svg?style=shield)](https://circleci.com/gh/nijohando/failable)
 
-Failable is clojure / clojurescript library that provides error handling helpers without try / catch syntax.
+Error handling helpers in Clojure(Script)
 
+## Rationale
 
-## Usage
+Main motivations for writing this library are:
 
-#### Avoid try / catch syntax
+* Managing errors as values insted of try/catch syntax
+* Available on both Clojure and ClojureScript
+* No function creation boundaries (Can be used in core.async go block)
 
-`ftry` just returns result of the form, but if exception occurs,
-it is converted into a failure object and returned as a return value.
+## Installation
 
-```clojure
-repl.clj=> (require '[jp.nijohando.failable :refer [ftry]])
-repl.clj=> (ftry (inc 1))
-2
-repl.clj=> (ftry (throw (Exception.)))
-#object[jp.nijohando.failable.Failure 0x251953af {:status :ready, :val #error {
- :cause nil
- :via
- [{:type java.lang.Exception
-   :message nil
-...
-```
-
-#### Check whether success or failure
-
-`success?` and `failure?` check whether success or failure.
+#### Ligningen / Boot
 
 ```clojure
-repl.clj=> (require '[jp.nijohando.failable :refer [ftry failure? success?]])
-repl.clj=> (failure? (ftry (throw (Exception.))))
-true
-repl.clj=> (success? (ftry (inc 1)))
-true
+[jp.nijohando/failable "0.2.0"]
 ```
 
-#### Create failure object
-
-Failure object can be created explicitly from message, other failure object or throwable.
+#### Clojure CLI / deps.edn
 
 ```clojure
-repl.clj=> (require '[jp.nijohando.failable :refer [fail]])
-repl.clj=> (fail "some error occurred")
-#object[jp.nijohando.failable.Failure 0x130f7819 {:status :ready, :val #error {
- :cause "some error occurred"
- :data {}
- :via
- [{:type clojure.lang.ExceptionInfo
-   :message "some error occurred"
-...
+jp.nijohando/failable {:mvn/version "0.2.0"}
 ```
 
-#### Failable let macro
-
-`flet` is failable let macro.  
-When exception occurs or failure object is bound, the binding evaluation is stopped and failure object is just returned as a return value.
+## Usage 
 
 ```clojure
-repl.clj=> (require '[jp.nijohando.failable :refer [flet fail]])
-repl.clj=> (flet [a (inc 1)
-                  b (fail "some error occurred")
-                  c (inc a)]
-                    (inc c))
-#object[jp.nijohando.failable.Failure 0x1cd13a82 {:status :ready, :val #error {
- :cause "some error occurred"
- :data {}
- :via
- [{:type clojure.lang.ExceptionInfo
-   :message "some error occurred"
+(require '[jp.nijohando.failable :as f])
 ```
 
-#### Failable arrow macros
+### Create an error as a value
 
-`f->` , `f->>`  are failable arrow macros.  
-When exception occurs or failure object is returned, threading is stopped and failure object is just returned as a return value.
+`fail` creates an error.
 
+With reason specified by keyword.
 
 ```clojure
-repl.clj=> (require '[jp.nijohando.failable :refer [f->]])
-repl.clj=> (f-> 1
-                (inc)
-                ((fn [x] (fail "some error occurs")))
-                (dec))
-#object[jp.nijohando.failable.Failure 0x519fb022 {:status :ready, :val #error {
- :cause "some error occurs"
- :data {}
- :via
- [{:type clojure.lang.ExceptionInfo
-   :message "some error occurs"
+(f/fail ::not-found)
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :user/not-found} 0x18205c08]
 ```
 
-
-## Development notes
-
-### REPL driven development
-
-#### Clojure
-
-To get an interactive development environment run:
-
-```
-lein repl
-```
-
-Execute unit tests.
+Additional error attributes can be passed as a map.
 
 ```clojure
-repl.clj=> (test/run)
+(f/fail ::validation {:name :constraints [[:max-length 255] [:invalid-chars ["&" "$"]]]
+                      :age  :constraints [[:min 18]]})
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :user/validation} 0x1f711438]
 ```
 
-#### Clojurescript
+Wrap other failure(or exception)
 
-To get an interactive development environment run:
-
+```clojure
+(let [cause (f/fail ::image-format-error)]
+  (f/fail ::upload-image-error cause))
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :user/upload-image-error} 0x3138f7b9]
 ```
-lein repl
+
+Wrap other failure(or exception) with error attributes.
+
+```clojure
+(let [cause (f/fail ::image-format-error)]
+  (f/fail ::upload-image-error {:image "my-profile01.webp"} cause))
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :user/upload-image-error} 0x9eeff19]
+```
+
+### Verify a value
+
+`succ?`, `fail?` checks whether the value is successful or failed.  
+Only values that satisfy all the following conditions will be failed.
+
+* Implements `jp.nijohando.failable.Failable` Protocol
+* Result of the method `-fail?` is true
+
+```clojure
+(def x (f/fail ::duplicate-email-address))
+(def y 1)
+
+(f/fail? x)
+;;=> true
+(f/succ? x)
+;;=> false
+(f/fail? y)
+;;=> false
+(f/succ? y)
+;;=> true
+```
+
+
+An exception is thrown if the value is an error, otherwise the value is just returned.
+
+```clojure
+(let [x (f/fail ::sql-error)]
+  (f/fensure x))
+;;=> ExceptionInfo :user/sql-error  clojure.core/ex-info (core.clj:4739)
 ```
 
 ```clojure
-repl.clj=> (fig-start)
-repl.clj=> (cljs-repl)
-repl.clj=> (in-ns 'repl.cljs)
+(let [x 1]
+  (f/fensure x))
+;;=> 1
 ```
 
-and open your browser at [localhost:3449](http://localhost:3449/).
-This will auto compile and send all changes to the browser without the
-need to reload. After the compilation process is complete, you will
-get a Browser Connected REPL.
 
-Execute unit tests.
+### Inspect an error
+
+Get reason.
 
 ```clojure
-repl.cljs=> (test/run)
+(def x (f/fail ::bad-request))
+
+@x
+;;=> :user/bad-request
+(f/reason x)
+;;=> :user/bad-request
 ```
 
-### Unit tests without repl
+Get error attributes.
 
-for clojure.
+```clojure
+(def x (f/fail ::bad-request {:account-id "A00000000001"}))
+(f/attrs x)
+;;=> {:account-id "A00000000001"}
+```
+
+### Failable threading macro
+
+`succ->`, `succ->>` are similar to `some->`, `some->>`, but they continue processing while the result is not failed.
+
+```clojure
+(f/succ-> 1
+          (inc)
+          (inc)
+          (dec))
+;;=> 2
+(f/succ-> 1
+          (inc)
+          ((fn [x] (f/fail ::stop-the-threading)))
+          (dec))
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :user/stop-the-threading} 0x3bc1711d]
+```
+
+```clojure
+(f/succ->> 1
+           (+ 1)
+           (+ 1)
+           (- 1))
+;;=> -2
+(f/succ->> 1
+           (+ 1)
+           ((fn [x] (f/fail ::stop-the-threading)))
+           (- 1))
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :user/stop-the-threading} 0x1baba519]
+```
+
+There are similar macros `succ->*`, `succ->>*` that are **exceptionproof**.  
+These macros capture an exception in a thread and convert it into an error.
+
+```clojure
+;; No exceptionproof
+(f/succ-> 1
+          (inc)
+          ((fn [x] (throw (ex-info "example" {}))))
+          (dec))
+;;=> ExceptionInfo example  clojure.core/ex-info (core.clj:4739)
+```
+
+```clojure
+;; Exceptionproof
+(f/succ->* 1
+           (inc)
+           ((fn [x] (throw (ex-info "example" {}))))
+           (dec))
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :jp.nijohando.failable/exceptionproof} 0x2d088638]
+```
+
+### Failable test macro
+
+
+`if-succ`, `if-fail` are similar to `if-some`, but they test the value is successful or failed.
+
+```clojure
+(if-succ [x (f/fail :account-not-found)]
+  :ok
+  :ng)
+;;=> :ng
+```
+
+```clojure
+(if-fail [x (f/fail :account-not-found)]
+  :ng
+  :ok)
+;;=> :ng
+```
+
+There are similar macros `if-succ*`, `if-fail*` that are **exceptionproof**.  
+These macros capture an exception in bindings and body and convert it into an error.
+
+`when-succ`, `when-fail` are similar to `when-some`, but they test the value is successful or failed.
+
+```clojure
+(when-succ [x 1]
+  :ok)
+;;=> :ok
+(when-succ [x (f/fail :account-not-found)]
+  :ok)
+;;=> nil
 
 ```
-lein clj-test
+
+```clojure
+(when-fail [x 1]
+  :ng)
+;;=> nil
+(when-fail [x (f/fail :account-not-found)]
+  :ng)
+;;=> :ng
+
 ```
 
-for clojurescript.  
-(nodejs is required)
+There are similar macros `when-succ*`, `when-fail*` that are **exceptionproof**.  
+These macros capture an exception in bindings and body and convert it into an error.
 
+
+### Failable let macro
+
+`flet` is similar to `let`, but stop the evaluation if an error is bound.
+
+```clojure
+(f/flet [i (do (println "1") 1)
+         j (do (println "2") 2)
+         k (f/fail ::stop-the-evaluation)
+         l (do (println "3") 3)]
+  (println "Not reach here"))
+;;=> 1
+;;=> 2
+;;=> #jp.nijohando.failable.Failed[{:status :ready, :val :user/stop-the-evaluation} 0x5f7f672e]
 ```
-lein cljs-test
-```
+
+There is similar macro `flet*` that is **exceptionproof**.  
+This macro captures an exception in bindings and body and convert it into an error.
+
+
+## License
+
+© 2017-2018 nijohando  
+
+Distributed under the Eclipse Public License either version 1.0 or (at
+your option) any later version.
