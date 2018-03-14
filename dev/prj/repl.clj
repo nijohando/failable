@@ -23,7 +23,6 @@
   (let [port (find-available-port)
         server (clojure.tools.nrepl.server/start-server :port port :handler cider.nrepl/cider-nrepl-handler)]
     (spit ".nrepl-port" port)
-    ;(clojure.main/repl :init #(in-ns 'prj.user))
     (clojure.main/repl :init #(do (in-ns 'prj.user)
                                   (clojure.core/use 'clojure.core)
                                   (use 'prj.user)))
