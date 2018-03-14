@@ -127,6 +127,25 @@ Get error attributes.
 ;;=> {:account-id "A00000000001"}
 ```
 
+Get throwable
+
+```
+(def x (f/fail ::bad-request))
+(f/throwable x)
+;;=> #error {
+ :cause ":user/bad-request"
+ :data {:reason :user/bad-request}
+ :via
+ [{:type clojure.lang.ExceptionInfo
+   :message ":user/bad-request"
+   :data {:reason :user/bad-request}
+   :at [clojure.core$ex_info invokeStatic "core.clj" 4739]}]
+ :trace
+ [[clojure.core$ex_info invokeStatic "core.clj" 4739]
+  [clojure.core$ex_info invoke "core.clj" 4739]
+  [jp.nijohando.failable$fail invokeStatic "failable.cljc" 78]
+```
+
 ### Failable threading macro
 
 `succ->`, `succ->>` are similar to `some->`, `some->>`, but they continue processing while the result is not failed.
