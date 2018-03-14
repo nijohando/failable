@@ -129,7 +129,7 @@ Get error attributes.
 
 Get throwable
 
-```
+```clojure
 (def x (f/fail ::bad-request))
 (f/throwable x)
 ;;=> #error {
