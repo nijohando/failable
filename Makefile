@@ -26,7 +26,7 @@ ifeq ($(findstring SNAPSHOT, $(VERSION)),)
 endif
 
 .PHONY: cljs/npm-install repl-clj repl-cljs test-clj test-cljs package deploy clean clean-all
-.DEFAULT_GOAL := repl
+.DEFAULT_GOAL := repl-clj
 
 npm-install:
 	$(CLJCMD) $(TASK_CLJS) :npm-install
