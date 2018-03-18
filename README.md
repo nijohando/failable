@@ -27,10 +27,18 @@ Main motivations for writing this library are:
 jp.nijohando/failable {:mvn/version "0.2.0"}
 ```
 
-## Usage 
+## Usage
+
+Clojure
 
 ```clojure
 (require '[jp.nijohando.failable :as f])
+```
+
+CloureScript
+
+```clojure
+(require '[jp.nijohando.failable :as f :include-macros true])
 ```
 
 ### Create an error as a value
