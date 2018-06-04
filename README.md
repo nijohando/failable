@@ -18,13 +18,13 @@ Main motivations for writing this library are:
 #### Ligningen / Boot
 
 ```clojure
-[jp.nijohando/failable "0.2.0"]
+[jp.nijohando/failable "0.2.1"]
 ```
 
 #### Clojure CLI / deps.edn
 
 ```clojure
-jp.nijohando/failable {:mvn/version "0.2.0"}
+jp.nijohando/failable {:mvn/version "0.2.1"}
 ```
 
 ## Usage
