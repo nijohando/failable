@@ -237,12 +237,12 @@
 (deftest succ->return-value-test
   (testing "Body forms are evaludated returned"
     (is (= 2 (f/succ-> 1
-                    (inc)
-                    (inc)
-                    (dec)))))
+               (inc)
+               (inc)
+               (dec)))))
   (testing "Failure is returned"
     (let [x (f/succ-> 1
-                   ((fn [x] (f/fail ::foo-error))))]
+              ((fn [x] (f/fail ::foo-error))))]
       (is (f/fail? x))
       (is (= @x ::foo-error)))))
 
@@ -250,18 +250,18 @@
   (testing "Threading evaluation is stopped by failure"
     (let [x (atom [])
           y (f/succ-> 1
-                   ((fn [n]
-                      (swap! x conj :a)
-                      (inc n)))
-                   ((fn [n]
-                      (swap! x conj :b)
-                      (inc n)))
-                   ((fn [n]
-                      (f/fail ::foo-error)))
-                   ((fn [n]
-                      (swap! x conj :c)
-                      (inc n)))
-                   (inc))]
+              ((fn [n]
+                 (swap! x conj :a)
+                 (inc n)))
+              ((fn [n]
+                 (swap! x conj :b)
+                 (inc n)))
+              ((fn [n]
+                 (f/fail ::foo-error)))
+              ((fn [n]
+                 (swap! x conj :c)
+                 (inc n)))
+              (inc))]
       (is (f/fail? y))
       (is (= @y ::foo-error))
       (is (= @x [:a :b]))))
@@ -269,61 +269,61 @@
     (is (thrown-with-msg?
          #?(:clj Exception :cljs js/Error) #"^foo-exception$"
          (f/succ-> 1
-                (inc)
-                ((fn [x] (throw (ex-info "foo-exception" {})))))))))
+           (inc)
+           ((fn [x] (throw (ex-info "foo-exception" {})))))))))
 
 (deftest succ->*return-value-test
   (testing "Body forms are evaludated returned"
     (is (= 2 (f/succ->* 1
-                     (inc)
-                     (inc)
-                     (dec)))))
+               (inc)
+               (inc)
+               (dec)))))
   (testing "Failure is returned"
     (let [x (f/succ->* 1
-                    ((fn [x] (f/fail ::foo-error))))]
+              ((fn [x] (f/fail ::foo-error))))]
       (is (f/fail? x))
       (is (= @x ::foo-error))))
 
   (testing "Exception is captured and returned as failure"
     (let [x (f/succ->* 1
-                    ((fn [x] (f/fail ::foo-error))))]
+              ((fn [x] (throw (ex-info "foo-exception" {})))))]
       (is (f/fail? x))
-      (is @x :jp.nijohando.failable/exceptionproof))))
+      (is (= @x :jp.nijohando.failable/exceptionproof )))))
 
 (deftest succ->*discontinuation-test
   (testing "Threading evaluation is stopped by failure"
     (let [x (atom [])
           y (f/succ->* 1
-                    ((fn [n]
-                       (swap! x conj :a)
-                       (inc n)))
-                    ((fn [n]
-                       (swap! x conj :b)
-                       (inc n)))
-                    ((fn [n]
-                       (f/fail ::foo-error)))
-                    ((fn [n]
-                       (swap! x conj :c)
-                       (inc n)))
-                    (inc))]
+              ((fn [n]
+                 (swap! x conj :a)
+                 (inc n)))
+              ((fn [n]
+                 (swap! x conj :b)
+                 (inc n)))
+              ((fn [n]
+                 (f/fail ::foo-error)))
+              ((fn [n]
+                 (swap! x conj :c)
+                 (inc n)))
+              (inc))]
       (is (f/fail? y))
       (is (= @x [:a :b]))
       (is (= @y ::foo-error))))
   (testing "Threading evaluation is stopped by exception"
     (let [x (atom [])
           y (f/succ->* 1
-                    ((fn [n]
-                       (swap! x conj :a)
-                       (inc n)))
-                    ((fn [n]
-                       (swap! x conj :b)
-                       (inc n)))
-                    ((fn [n]
-                       (throw (ex-info "foo-exception" {}))))
-                    ((fn [n]
-                       (swap! x conj :c)
-                       (inc n)))
-                    (inc))]
+              ((fn [n]
+                 (swap! x conj :a)
+                 (inc n)))
+              ((fn [n]
+                 (swap! x conj :b)
+                 (inc n)))
+              ((fn [n]
+                 (throw (ex-info "foo-exception" {}))))
+              ((fn [n]
+                 (swap! x conj :c)
+                 (inc n)))
+              (inc))]
       (is (f/fail? y))
       (is (= @x [:a :b]))
       (is (= @y :jp.nijohando.failable/exceptionproof)))))
@@ -331,12 +331,12 @@
 (deftest succ->>return-value-test
   (testing "Body forms are evaludated returned"
     (is (= 2 (f/succ->> 1
-                     (inc)
-                     (inc)
-                     (dec)))))
+               (inc)
+               (inc)
+               (dec)))))
   (testing "Failure is returned"
     (let [x (f/succ->> 1
-                    ((fn [x] (f/fail ::foo-error))))]
+              ((fn [x] (f/fail ::foo-error))))]
       (is (f/fail? x))
       (is (= @x ::foo-error)))))
 
@@ -344,18 +344,18 @@
   (testing "Threading evaluation is stopped by failure"
     (let [x (atom [])
           y (f/succ->> 1
-                    ((fn [n]
-                       (swap! x conj :a)
-                       (inc n)))
-                    ((fn [n]
-                       (swap! x conj :b)
-                       (inc n)))
-                    ((fn [n]
-                       (f/fail ::foo-error)))
-                    ((fn [n]
-                       (swap! x conj :c)
-                       (inc n)))
-                    (inc))]
+              ((fn [n]
+                 (swap! x conj :a)
+                 (inc n)))
+              ((fn [n]
+                 (swap! x conj :b)
+                 (inc n)))
+              ((fn [n]
+                 (f/fail ::foo-error)))
+              ((fn [n]
+                 (swap! x conj :c)
+                 (inc n)))
+              (inc))]
       (is (f/fail? y))
       (is (= @x [:a :b]))
       (is (= @y ::foo-error))))
@@ -363,25 +363,25 @@
     (is (thrown-with-msg?
          #?(:clj Exception :cljs js/Error) #"^foo-exception$"
          (f/succ->> 1
-                 (inc)
-                 ((fn [x] (throw (ex-info "foo-exception" {})))))))))
+           (inc)
+           ((fn [x] (throw (ex-info "foo-exception" {})))))))))
 
 (deftest succ->>*return-value-test
   (testing "Body forms are evaludated returned"
     (is (= -2 (f/succ->>* 1
-                       (+ 1)
-                       (+ 1)
-                       (- 1)))))
+                (+ 1)
+                (+ 1)
+                (- 1)))))
   (testing "Failure is returned"
     (let [x (f/succ->>* 1
-                     ((fn [x] (f/fail ::foo-error))))]
+              ((fn [x] (f/fail ::foo-error))))]
       (is (f/fail? x))
       (is (= @x ::foo-error))))
   (testing "Exception is captured and returned as failure"
     (let [x (f/succ->>* 1
-                    ((fn [x] (f/fail ::foo-error))))]
+              ((fn [x] (throw (ex-info "foo-exception" {})))))]
       (is (f/fail? x))
-      (is @x :jp.nijohando.failable/exceptionproof))))
+      (is (= @x :jp.nijohando.failable/exceptionproof)))))
 
 (deftest if-succ-test
   (testing "Evaluates 'then' form if test is successful"
