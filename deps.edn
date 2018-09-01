@@ -12,6 +12,7 @@
   :test    {:extra-paths ["test"]
             :extra-deps {org.clojure/core.async {:mvn/version "0.4.474"}
                          jp.nijohando.prj/prj-test {:mvn/version "1.0.0"}}}
-  :repl    {:extra-deps {jp.nijohando.prj/prj-repl {:mvn/version "1.0.0"}}}
+  :repl    {:extra-deps {jp.nijohando.prj/prj-repl {:mvn/version "1.0.0"}
+                         org.clojure/tools.namespace {:mvn/version "0.3.0-alpha4"}}}
   :package {:extra-deps {jp.nijohando.prj/prj-package {:mvn/version "1.0.0"}}}}}
 
