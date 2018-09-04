@@ -17,13 +17,10 @@
       (is (= ::test (f/reason x)))))
   (testing "Failure can be associated with any extra information"
     (let [msg "this is test"
-          cause (ex-info "test" {})
           x (-> (f/fail)
-                (assoc :msg msg)
-                (assoc :cause cause))]
+                (assoc :msg msg))]
       (is (f/fail? x))
-      (is (= msg (:msg x)))
-      (is (= cause (:cause x))))))
+      (is (= msg (:msg x))))))
 
 (deftest reason
   (testing "Reason can be retrieved from faulure"
@@ -32,6 +29,14 @@
   (testing "Reason can also be retrieved by deref"
     (is (= :test @(f/fail :test)))
     (is (nil? @(f/fail)))))
+
+(deftest wrap-and-cause
+  (testing "Failure can be created by wrapping the cause"
+    (let [x (f/fail)
+          y (f/wrap x :test)]
+      (is (f/fail? y))
+      (is (= :test @y))
+      (is (= x (f/cause y))))))
 
 (deftest ensure
   (testing "Value is just returned if it's not failure"
@@ -50,8 +55,10 @@
                (swap! x conj :d1)
                (swap! x conj :d2)) [:d1 :d2]))))
   (testing "Exception is converted into failure, then returned"
-    (let [x (f/do* (throw (ex-info "test" {})))]
-      (is (f/fail? x)))))
+    (let [ex (ex-info "test" {})
+          x (f/do* (throw ex))]
+      (is (f/fail? x))
+      (is (= ex (f/cause x))))))
 
 (deftest flet
   (testing "Returns"
@@ -136,7 +143,7 @@
                 nil)]
         (is (f/fail? x))
         (is (= :exception @x))
-        (is (= ex (:cause x)))))
+        (is (= ex (f/cause x)))))
     (testing "Exception on body is captured and returned as failure"
       (let [x (f/flet* [_ 1] (throw (ex-info "test" {})))]
         (is (f/fail? x))
