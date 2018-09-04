@@ -18,13 +18,13 @@ Main motivations for writing this library are:
 #### Ligningen / Boot
 
 ```clojure
-[jp.nijohando/failable "0.3.0"]
+[jp.nijohando/failable "0.3.2-SNAPSHOT"]
 ```
 
 #### Clojure CLI / deps.edn
 
 ```clojure
-jp.nijohando/failable {:mvn/version "0.3.0"}
+jp.nijohando/failable {:mvn/version "0.3.2-SNAPSHOT"}
 ```
 
 ## Usage
@@ -47,14 +47,15 @@ function `fail` creates a failure object representing an error.
 
 ```clojure
 (f/fail)
-;;=> #jp.nijohando.failable.Failure{}
+;=> #jp.nijohando.failable.Failure{}
 ```
 
 Failure object also can be created by specifying the reason for falure.
 
 ```clojure
 (f/fail :user-not-found)
-;;=> #jp.nijohando.failable.Failure{:jp.nijohando.failable/reason :not-found}
+;=> #jp.nijohando.failable.Failure{
+;     :jp.nijohando.failable/reason :not-found}
 ```
 
 The reason can be retrieved by function `reason`
@@ -62,7 +63,7 @@ The reason can be retrieved by function `reason`
 ```clojure
 (def x (f/fail :user-not-found))
 (f/reason x)
-;;=> :user-not-found
+;=> :user-not-found
 ```
 
 `@` ( `deref` ) is more simple way to get the reason.
@@ -70,7 +71,7 @@ The reason can be retrieved by function `reason`
 ```clojure
 (def x (f/fail :user-not-found))
 @x
-;;=> :user-not-found
+;=> :user-not-found
 
 ```
 
@@ -79,7 +80,26 @@ Since failure object is expressed as a record of type `jp.nijohando.failable.Fai
 ```clojure
 (-> (f/fail :user-not-found)
     (assoc :user-id 1001))
-;;=> #jp.nijohando.failable.Failure{:jp.nijohando.failable/reason :user-not-found, :user-id 10001}
+;=> #jp.nijohando.failable.Failure{
+;     :jp.nijohando.failable/reason :user-not-found,
+;     :user-id 10001}
+```
+
+### Nested error context
+
+Failure object can be created by wrapping the another one or an exception that caused it.
+
+```clojure
+(def origin (f/fail :origin))
+(def wrapped (f/wrap origin :wrapped))
+wrapped
+;=> #jp.nijohando.failable.Failure{
+;     :jp.nijohando.failable/reason :wrapped, 
+;     :jp.nijohando.failable/cause #jp.nijohando.failable.Failure{
+;                                    :jp.nijohando.failable/reason :origin}}
+(f/cause wrapped)
+;=> #jp.nijohando.failable.Failure{
+;     :jp.nijohando.failable/reason :origin}
 ```
 
 ### Alternative to try catch syntax
@@ -88,7 +108,9 @@ function `do*` is similar to [do](https://clojure.github.io/clojure/clojure.core
 
 ```clojure
 (f/do* (throw (ex-info "test" {})))
-;=>> #jp.nijohando.failable.Failure{:jp.nijohando.failable/reason :jp.nijohando.failable/exception, :cause #error { ...
+;=> #jp.nijohando.failable.Failure{
+;     :jp.nijohando.failable/reason :jp.nijohando.failable/exception, 
+;     :cause #error { ... }}
 ```
 
 
@@ -102,13 +124,13 @@ Only values that are the instance of Failure will be failed.
 (def y 1)
 
 (f/fail? x)
-;;=> true
+;=> true
 (f/succ? x)
-;;=> false
+;=> false
 (f/fail? y)
-;;=> false
+;=> false
 (f/succ? y)
-;;=> true
+;=> true
 ```
 
 function `ensure` throws an exception if the value is failed, otherwise the value is just returned.
@@ -116,14 +138,14 @@ function `ensure` throws an exception if the value is failed, otherwise the valu
 ```clojure
 (let [x (f/fail)]
   (f/ensure x))
-;;=> ExceptionInfo Failed to ensure value  clojure.core/ex-info (core.clj:4739)
+;=> ExceptionInfo Failed to ensure value  clojure.core/ex-info (core.clj:4739)
 
 ```
 
 ```clojure
 (let [x 1]
   (f/ensure x))
-;;=> 1
+;=> 1
 ```
 
 
@@ -147,7 +169,7 @@ The threading is continued while the result is not failed.
   (inc)
   (inc)
   (dec))
-;;=> 2
+;=> 2
 ```
 
 When expr is failed, the threading is stopped and failure object is returned.
@@ -157,7 +179,7 @@ When expr is failed, the threading is stopped and failure object is returned.
   (inc)
   ((fn [x] (f/fail)))
   (dec))
-;;=> #jp.nijohando.failable.Failure{}
+;=> #jp.nijohando.failable.Failure{}
 ```
 
 #### `fail->` `fail->*`
@@ -180,9 +202,9 @@ There are 2 variant of let macros that are similar to [let](https://clojure.gith
          k (f/fail)
          _ (prn 3)]
   (prn "Not reach here"))
-;;=> 1
-;;=> 2
-;;=> #jp.nijohando.failable.Failure{}
+;=> 1
+;=> 2
+;=> #jp.nijohando.failable.Failure{}
 ```
 
 ### Failable let-style-if macros
@@ -201,22 +223,22 @@ There are 4 let-style-if macros that are similar to [if-some](https://clojure.gi
 (f/if-succ [x 1]
   :ok
   :ng)
-;;=> :ok
+;=> :ok
 (f/if-succ [x (f/fail)]
   :ok
   :ng)
-;;=> :ng
+;=> :ng
 ```
 
 ```clojure
 (f/if-fail [x 1]
   :ng
   :ok)
-;;=> :ok
+;=> :ok
 (f/if-fail [x (f/fail)]
   :ng
   :ok)
-;;=> :ng
+;=> :ng
 ```
 
 ### Failable let-style-when macros
@@ -233,20 +255,20 @@ There are 4 let-style-when macros that are similar to [when-some](https://clojur
 ```clojure
 (f/when-succ [x 1]
   :ok)
-;;=> :ok
+;=> :ok
 (f/when-succ [x (f/fail)]
   :ok)
-;;=> nil
+;=> nil
 
 ```
 
 ```clojure
 (f/when-fail [x 1]
   :ng)
-;;=> nil
+;=> nil
 (f/when-fail [x (f/fail)]
   :ng)
-;;=> :ng
+;=> :ng
 
 ```
 

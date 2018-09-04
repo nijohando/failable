@@ -31,6 +31,16 @@
   (when (fail? x)
     (::reason x)))
 
+(defn cause
+  [x]
+  (when (fail? x)
+    (::cause x)))
+
+(defn wrap
+  [x reason]
+  (-> (fail reason)
+      (assoc ::cause x)))
+
 (defn ensure
   [x]
   (if (fail? x)
@@ -44,12 +54,12 @@
       ~@forms
       (catch js/Error e#
         (-> (fail :exception)
-            (assoc :cause e#))))
+            (assoc ::cause e#))))
     (try
       ~@forms
       (catch Exception e#
         (-> (fail :exception)
-            (assoc :cause e#))))))
+            (assoc ::cause e#))))))
 
 (defmacro flet
   [bindings & body]
