@@ -621,6 +621,12 @@
   (testing "'body' form is evaluated if test is successful"
     (is (true? (f/when-succ [x 1]
                  (number? x)))))
+  (testing "'body' forms are evaluated if test is successful"
+    (is (= 102 (let [a (atom 100)]
+                 (f/when-succ [x 1]
+                   (swap! a + x)
+                   (swap! a inc)
+                   @a)))))
   (testing "nil is returned if test is failed"
     (is (nil? (f/when-succ [x (f/fail)]
                 false))))
@@ -639,6 +645,12 @@
   (testing "'body' form is evaluated if test is successful"
     (is (true? (f/when-succ* [x 1]
                  (number? x)))))
+  (testing "'body' forms are evaluated if test is successful"
+    (is (= 102 (let [a (atom 100)]
+                 (f/when-succ* [x 1]
+                   (swap! a + x)
+                   (swap! a inc)
+                   @a)))))
   (testing "nil is returned if test is failed"
     (is (nil? (f/when-succ* [x (f/fail)]
                 false))))
@@ -655,6 +667,12 @@
   (testing "'body' form is evaluated if test is failed"
     (is (true? (f/when-fail [x (f/fail)]
                  true))))
+  (testing "'body' forms are evaluated if test is successful"
+    (is (= 102 (let [a (atom 100)]
+                 (f/when-fail [x (f/fail)]
+                   (swap! a inc)
+                   (swap! a inc)
+                   @a)))))
   (testing "nil is returned if test is successful"
     (is (nil? (f/when-fail [x 1]
                 false))))
@@ -673,6 +691,12 @@
   (testing "'body' form is evaluated if test is failed"
     (is (true? (f/when-fail* [x (f/fail)]
                  true))))
+  (testing "'body' forms are evaluated if test is successful"
+    (is (= 102 (let [a (atom 100)]
+               (f/when-fail* [x (f/fail)]
+                 (swap! a inc)
+                 (swap! a inc)
+                 @a)))))
   (testing "nil is returned if test is successful"
     (is (nil? (f/when-fail* [x 1]
                 false))))
