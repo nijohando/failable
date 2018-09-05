@@ -266,20 +266,20 @@
               else)))))))
 
 (defmacro when-succ
-  [bindings then]
-  `(if-succ ~bindings ~then))
+  [bindings & body]
+  `(if-succ ~bindings (do ~@body)))
 
 (defmacro when-succ*
-  [bindings then]
-  `(if-succ* ~bindings ~then))
+  [bindings & body]
+  `(if-succ* ~bindings (do ~@body)))
 
 (defmacro when-fail
-  [bindings then]
-  `(if-fail ~bindings ~then))
+  [bindings & body]
+  `(if-fail ~bindings (do ~@body)))
 
 (defmacro when-fail*
-  [bindings then]
-  `(if-fail* ~bindings ~then))
+  [bindings & body]
+  `(if-fail* ~bindings (do ~@body)))
 
 #?(:clj (prefer-method print-method clojure.lang.IRecord clojure.lang.IDeref))
 
