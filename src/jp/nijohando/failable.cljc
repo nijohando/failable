@@ -281,5 +281,8 @@
   [bindings & body]
   `(if-fail* ~bindings (do ~@body)))
 
-#?(:clj (prefer-method print-method clojure.lang.IRecord clojure.lang.IDeref))
+#?(:clj
+   (do
+     (prefer-method print-method clojure.lang.IRecord clojure.lang.IDeref)
+     (prefer-method print-method java.util.Map clojure.lang.IDeref)))
 
