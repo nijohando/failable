@@ -44,7 +44,10 @@
 (defn ensure
   [x]
   (if (fail? x)
-    (throw (ex-info "Failed to ensure value" {:failure x}))
+    (throw (ex-info (str "Failed to ensure value"
+                         (when-some [reason @x]
+                           (str " by " reason)))
+                    {:failure x}))
     x))
 
 (defmacro do*
