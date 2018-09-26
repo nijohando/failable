@@ -1,10 +1,7 @@
 (ns jp.nijohando.failable-test
   (:refer-clojure :exclude [ensure])
-  (:require #?(:clj  [clojure.test :as t :refer [run-tests is are deftest testing]]
-               :cljs [cljs.test :as t :refer-macros [run-tests is are deftest testing]])
-            [jp.nijohando.failable :as f :include-macros true])
-  #?(:clj (:import [clojure.lang ExceptionInfo])))
-
+  (:require [clojure.test :as t :refer [run-tests is deftest testing]]
+            [jp.nijohando.failable :as f :include-macros true]))
 
 (deftest fail
   (testing "Failure can be created"
@@ -708,4 +705,3 @@
               (throw (ex-info "test" {})))]
       (is (f/fail? x))
       (is (= :exception @x)))))
-
