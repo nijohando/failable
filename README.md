@@ -18,13 +18,13 @@ Main motivations for writing this library are:
 #### Ligningen / Boot
 
 ```clojure
-[jp.nijohando/failable "0.3.3"]
+[jp.nijohando/failable "0.4.0-SNAPSHOT"]
 ```
 
 #### Clojure CLI / deps.edn
 
 ```clojure
-jp.nijohando/failable {:mvn/version "0.3.3"}
+jp.nijohando/failable {:mvn/version "0.4.0-SNAPSHOT"}
 ```
 
 ## Usage
@@ -55,7 +55,7 @@ Failure object also can be created by specifying the reason for falure.
 ```clojure
 (f/fail :user-not-found)
 ;=> #jp.nijohando.failable.Failure{
-;     :jp.nijohando.failable/reason :not-found}
+;     :jp.nijohando.failable/reason :user-not-found}
 ```
 
 The reason can be retrieved by function `reason`
@@ -151,14 +151,18 @@ function `ensure` throws an exception if the value is failed, otherwise the valu
 
 ### Failable threading macros
 
-There are 4 conditional threading macros that are similar to [some->](https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/some-%3E), [some->>](https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/some-%3E%3E), but the conditions are focused on whether the result is succeeded or failed.
+There are 6 conditional threading macros that are similar to [some->](https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/some-%3E), [some->>](https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/some-%3E%3E), and [as->](https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/as-%3E) but the conditions are focused on whether the result is succeeded or failed.
 
-| Macro     | Continuation condition | [exceptionproof](#exceptionproof) |
-| :-        | :-:                    | :-:                               |
-| `succ->`  | Successful             | -                                 |
-| `succ->*` | Successful             | ✓                                 |
-| `fail->`  | Failed                 | -                                 |
-| `fail->*` | Failed                 | ✓                                 |
+| Macro        | Continuation condition | [exceptionproof](#exceptionproof) |
+| :-           | :-:                    | :-:                               |
+| `succ->`     | Successful             | -                                 |
+| `succ->*`    | Successful             | ✓                                 |
+| `fail->`     | Failed                 | -                                 |
+| `fail->*`    | Failed                 | ✓                                 |
+| `as-succ->`  | Successful             | -                                 |
+| `as-succ->*` | Successful             | ✓                                 |
+| `as-fail->`  | Failed                 | -                                 |
+| `as-fial->*` | Failed                 | ✓                                 |
 
 #### `succ->` `succ->*`
 
@@ -186,20 +190,40 @@ When expr is failed, the threading is stopped and failure object is returned.
 
 These are the opposite of `succ->` `succ->*` that continue processing while the result is failed.
 
+#### `as-succ->` `as-succ->*`
+
+Like a `as->`, but the thrading is continued while the result is not failed.
+
+```clojure
+(f/as-succ-> 1 n
+  (inc n)
+  (inc n)
+  (dec n))
+;=> 2
+```
+
+When expr is failed, the threading is stopped and failure object is returned.
+
+#### `as-fail->` `as-fail->*`
+
+These are the opposite of `as-succ->` `as-succ->*` that continue processing while the result is failed.
 
 ### Failable let macros
 
-There are 2 variant of let macros that are similar to [let](https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/let), but the binding evaluation is stopped if the bound value is failed.
+There are 4 variants of let macros that are similar to [let](https://clojure.github.io/clojure/clojure.core-api.html#clojure.core/let), 
+but the binding evaluation is stopped if the bound value does not satisfy the condition.
 
-| Macro | [exceptionproof](#exceptionproof) |
-| :-       | :-:            |
-| `flet`   | -            |
-| `flet*`  | ✓           |
+| Macro   | Condition  | [exceptionproof](#exceptionproof) |
+| :-      | :-         | :-:                               |
+| `slet`  | Successful | -                                 |
+| `slet*` | Successful | ✓                                 |
+| `flet`  | Failed     | -                                 |
+| `flet*` | Failed     | ✓                                 |
 
 ```clojure
-(f/flet [_ (prn 1)
+(f/slet [_ (prn 1)
          _ (prn 2)
-         k (f/fail)
+         x (f/fail)
          _ (prn 3)]
   (prn "Not reach here"))
 ;=> 1

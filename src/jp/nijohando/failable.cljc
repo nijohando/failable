@@ -47,7 +47,7 @@
     (throw (ex-info (str "Failed to ensure value"
                          (when-some [reason @x]
                            (str " by " reason)))
-                    {:failure x}))
+                    {::cause x}))
     x))
 
 (defmacro do*
@@ -56,33 +56,48 @@
     (try
       ~@forms
       (catch js/Error e#
-        (-> (fail :exception)
+        (-> (fail ::exception)
             (assoc ::cause e#))))
     (try
       ~@forms
       (catch Exception e#
-        (-> (fail :exception)
+        (-> (fail ::exception)
             (assoc ::cause e#))))))
 
-(defmacro flet
-  [bindings & body]
+(defmacro -pred-let
+  [pred bindings & body]
   (->> (reverse (partition 2 bindings))
        (reduce (fn [acc [l r]]
                  `(let [x# ~r
                         ~l x#]
-                    (if (fail? x#)
-                      x#
-                      ~acc)))
+                    (if (~pred x#)
+                      ~acc
+                      x#)))
                `(do ~@body))))
 
-(defmacro flet*
-  [bindings & body]
+(defmacro -pred-let*
+  [pred bindings & body]
   (let [bindings* (->> (partition 2 bindings)
                        (map (fn [[l r]]
                               [l `(do* ~r)]))
                        (apply concat))]
-    `(flet [~@bindings*]
-           (do* ~@body))))
+    `(-pred-let ~pred [~@bindings*] (do* ~@body))))
+
+(defmacro slet
+  [bindings & body]
+  `(-pred-let succ? ~bindings ~@body))
+
+(defmacro slet*
+  [bindings & body]
+  `(-pred-let* succ? ~bindings ~@body))
+
+(defmacro flet
+  [bindings & body]
+  `(-pred-let fail? ~bindings ~@body))
+
+(defmacro flet*
+  [bindings & body]
+  `(-pred-let* fail? ~bindings ~@body))
 
 (defmacro succ->
   [expr & body]
@@ -91,6 +106,7 @@
                      `(if (fail? ~g)
                         ~g
                         (-> ~g
+
                             ~step)))
                    body)]
     `(let [~g ~expr
@@ -109,11 +125,11 @@
                             ~step)))
                    body)]
     `(do*
-      (let [~g ~expr
-            ~@(interleave (repeat g) (butlast steps))]
-        ~(if (empty? steps)
-           g
-           (last steps))))))
+       (let [~g ~expr
+             ~@(interleave (repeat g) (butlast steps))]
+         ~(if (empty? steps)
+            g
+            (last steps))))))
 
 (defmacro succ->>
   [expr & body]
@@ -140,11 +156,11 @@
                              ~step)))
                    body)]
     `(do*
-      (let [~g ~expr
-            ~@(interleave (repeat g) (butlast steps))]
-        ~(if (empty? steps)
-           g
-           (last steps))))))
+       (let [~g ~expr
+             ~@(interleave (repeat g) (butlast steps))]
+         ~(if (empty? steps)
+            g
+            (last steps))))))
 
 (defmacro fail->
   [expr & body]
@@ -210,6 +226,40 @@
             g
             (last steps))))))
 
+(defmacro -as-pred->
+  [pred expr name & forms]
+  `(-pred-let ~pred [~name ~expr
+                     ~@(interleave (repeat name) (butlast forms))]
+              ~(if (empty? forms)
+                 name
+                 (last forms))))
+
+(defmacro -as-pred->*
+  [pred expr name & forms]
+  `(-pred-let ~pred [~name (do* ~expr)
+                     ~@(interleave (repeat name) (->> (butlast forms)
+                                                      (map (fn [form] `(do* ~form)))))]
+              (do*
+                ~(if (empty? forms)
+                   name
+                   (last forms)))))
+
+(defmacro as-succ->
+  [expr name & forms]
+  `(-as-pred-> succ? ~expr ~name ~@forms))
+
+(defmacro as-succ->*
+  [expr name & forms]
+  `(-as-pred->* succ? ~expr ~name ~@forms))
+
+(defmacro as-fail->
+  [expr name & forms]
+  `(-as-pred-> fail? ~expr ~name ~@forms))
+
+(defmacro as-fail->*
+  [expr name & forms]
+  `(-as-pred->* fail? ~expr ~name ~@forms))
+
 (defmacro if-succ
   ([bindings then]
    `(if-succ ~bindings ~then nil))
@@ -234,10 +284,10 @@
      `(let [~g (do* ~r)
             ~l ~g]
         (do*
-         (if (succ? ~g)
-           ~then
-           ~(when (some? else)
-              else)))))))
+          (if (succ? ~g)
+            ~then
+            ~(when (some? else)
+               else)))))))
 
 (defmacro if-fail
   ([bindings then]
@@ -263,10 +313,10 @@
      `(let [~g (do* ~r)
             ~l ~g]
         (do*
-         (if (fail? ~g)
-           ~then
-           ~(when (some? else)
-              else)))))))
+          (if (fail? ~g)
+            ~then
+            ~(when (some? else)
+               else)))))))
 
 (defmacro when-succ
   [bindings & body]
@@ -289,4 +339,3 @@
      (prefer-method print-method clojure.lang.IRecord clojure.lang.IDeref)
      (prefer-method print-method java.util.Map clojure.lang.IDeref)
      (prefer-method print-method clojure.lang.IPersistentMap clojure.lang.IDeref)))
-
