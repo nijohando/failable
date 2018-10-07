@@ -47,7 +47,7 @@
     (throw (ex-info (str "Failed to ensure value"
                          (when-some [reason @x]
                            (str " by " reason)))
-                    {::cause x}))
+                    x))
     x))
 
 (defmacro do*
