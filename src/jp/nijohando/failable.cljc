@@ -44,10 +44,16 @@
 (defn ensure
   [x]
   (if (fail? x)
-    (throw (ex-info (str "Failed to ensure value"
-                         (when-some [reason @x]
-                           (str " by " reason)))
-                    x))
+    (let [root (loop [f x]
+                 (if (succ? f)
+                   f
+                   (recur (cause f))))]
+      (throw (ex-info
+              (str "Failed to ensure value"
+                   (when-some [reason @x]
+                     (str " by " reason)))
+              x
+              root)))
     x))
 
 (defmacro do*
