@@ -4,4 +4,4 @@
 
 (deftask test-clj
   [conf & test-case-symbols]
-  (prj-test/run-tests 'jp.nijohando.failable-test))
+  (prj-test/run-tests 'jp.nijohando.failable-test 'jp.nijohando.failable-test-clj))
