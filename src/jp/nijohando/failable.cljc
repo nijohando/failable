@@ -52,7 +52,8 @@
               (str "Failed to ensure value"
                    (when-some [reason @x]
                      (str " by " reason)))
-              x
+              (->> (dissoc x ::reason)
+                   (into {}))
               root)))
     x))
 

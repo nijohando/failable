@@ -5,10 +5,11 @@
  :aliases
  {:dev     {:extra-paths ["dev"]
             :extra-deps {jp.nijohando.prj/prj-core {:mvn/version "1.0.0"}}}
-  :cljs    {:extra-deps {jp.nijohando.prj/prj-cljs {:mvn/version "1.0.0"}
+  :cljs    {:extra-paths ["test"]
+            :extra-deps {jp.nijohando.prj/prj-cljs {:mvn/version "1.0.1"}
                          jp.nijohando.prj/prj-cljs-nodejs {:mvn/version "1.0.0"}
-                         jp.nijohando.prj/prj-cljs-repl-figwheel {:mvn/version "1.0.0"}
-                         jp.nijohando.prj/prj-cljs-test {:mvn/version "1.0.0"}}}
+                         jp.nijohando.prj/prj-cljs-test {:mvn/version "1.0.0"}
+                         com.bhauman/figwheel-main {:mvn/version "0.1.9"}}}
   :test    {:extra-paths ["test"]
             :extra-deps {org.clojure/core.async {:mvn/version "0.4.474"}
                          jp.nijohando.prj/prj-test {:mvn/version "1.0.0"}}}

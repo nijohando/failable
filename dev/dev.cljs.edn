@@ -1,0 +1,5 @@
+{:main          "jp.nijohando.failable"
+ :output-dir     "target/out"
+ :target        :nodejs
+ :optimizations :none
+ :verbose       true}

@@ -1,28 +1,13 @@
 (ns prj.cljs
   (:require [jp.nijohando.prj.cljs :as prj-cljs]
-            [jp.nijohando.prj.cljs.nodejs :as prj-cljs-nodejs]
-            [jp.nijohando.prj.cljs.repl-figwheel :as prj-cljs-repl]
-            [jp.nijohando.prj.cljs.test :as prj-cljs-test]
-            [prj.config :refer [cljs-builds]]))
-
-(def config (partial prj-cljs/merge-config cljs-builds))
-
-(defn npm-install
-  []
-  (-> (config [:default :dev])
-       (prj-cljs-nodejs/npm-install)))
-
-(defn repl-cljs
-  ([]
-   (repl-cljs [:default :dev]))
-  ([profiles]
-   (-> (config profiles)
-        (prj-cljs-repl/start-repl))))
+            [jp.nijohando.prj.cljs.test :as prj-cljs-test]))
 
 (defn test-cljs
   ([]
-   (test-cljs [:default :test]))
-  ([profiles]
-   (-> (config profiles)
-       (prj-cljs-test/run-tests ['jp.nijohando.failable-test
-                                 'jp.nijohando.failable-test-cljs]))))
+   (test-cljs "dev/dev.cljs.edn" "dev/test.cljs.edn"))
+  ([& paths]
+   (let [copts (apply prj-cljs/compiler-options paths)
+         conf {:source-paths ["src" "test"]
+               :compiler copts}]
+     (prj-cljs-test/run-tests conf ['jp.nijohando.failable-test
+                                    'jp.nijohando.failable-test-cljs]))))

@@ -17,7 +17,7 @@ TASK_GROUP_REPL=-C:dev:test -R:dev:repl:test:package:cljs -m prj.task.repl
 
 GROUP_ID=jp.nijohando
 ARTIFACT_ID=failable
-VERSION=0.4.0
+VERSION=0.4.1
 JAR_FILE=$(WORK_DIR)/$(ARTIFACT_ID)-$(VERSION).jar
 DEPLOY_REPO_URL=https://clojars.org/repo
 LOCAL_REPO_PATH=~/.m2/repository
@@ -26,17 +26,14 @@ ifeq ($(findstring SNAPSHOT, $(VERSION)),)
 	IS_RELEASE_VERSION=yes
 endif
 
-.PHONY: npm-install repl-clj repl-cljs test-clj test-cljs package deploy install clean clean-all
+.PHONY: repl-clj repl-cljs test-clj test-cljs package deploy install clean
 .DEFAULT_GOAL := repl-clj
-
-npm-install:
-	$(CLJCMD) $(TASK_GROUP_CLJS) :npm-install
 
 repl-clj:
 	$(CLJCMD) $(TASK_GROUP_REPL) :repl-clj
 
 repl-cljs:
-	$(CLJCMD) $(TASK_GROUP_CLJS) :repl-cljs
+	$(CLJCMD) -C:dev:cljs -R:dev:cljs:test -m figwheel.main -co dev/dev.cljs.edn -r
 
 test-clj:
 	$(CLJCMD) $(TASK_GROUP_TEST) :test-clj
@@ -69,7 +66,3 @@ install: package
 clean:
 	rm -rf ${WORK_DIR}
 	rm -f pom.xml pom.xml.asc
-
-clean-all: clean
-	rm -rf ./node_modules
-
