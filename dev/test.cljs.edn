@@ -1,0 +1,3 @@
+{:main          "jp.nijohando.prj.cljs.test.runner"
+ :output-to     "target/out/index.js"
+ :source-map    true}
