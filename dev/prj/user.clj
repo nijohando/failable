@@ -10,7 +10,3 @@
 (defn test-cljs
   []
   (prj.cljs/test-cljs))
-
-(defn repl-cljs
-  []
-  (prj.cljs/repl-cljs))
